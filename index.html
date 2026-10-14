@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Carrinho: Gerenciador Inteligente de Compras</title>
+  <meta name="description" content="Organize produtos que você encontra na internet, calcule totais com frete, simule compras e acompanhe o que já comprou.">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Favicon SVG Data URI -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='8' cy='21' r='1'/><circle cx='19' cy='21' r='1'/><path d='M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12'/></svg>" type="image/svg+xml">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Background ambient glow -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="21" r="1"></circle>
+            <circle cx="19" cy="21" r="1"></circle>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>Meu Carrinho</h1>
+          <span class="brand-tagline">Seu assistente inteligente de compras</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Quick stats badges -->
+        <div class="quick-stats-pills" id="quickStatsPills">
+          <div class="stat-pill" title="Itens na lista de desejos">
+            <span class="stat-pill-label">A Comprar:</span>
+            <span class="stat-pill-val" id="pillPendingCount">0</span>
+          </div>
+          <div class="stat-pill stat-pill-success" title="Itens já adquiridos">
+            <span class="stat-pill-label">Comprados:</span>
+            <span class="stat-pill-val" id="pillPurchasedCount">0</span>
+          </div>
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" class="icon-btn theme-toggle-btn" aria-label="Alternar tema de cores" title="Alternar tema">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+
+        <!-- New Product Button -->
+        <button id="openNewProductModalBtn" class="btn btn-primary add-product-btn" aria-label="Novo Produto" title="Novo Produto">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span>Novo Produto</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-content">
+    <div class="content-container">
+
+      <!-- Filters, Search & Tabs Bar -->
+      <section class="controls-card" aria-label="Filtros e busca de produtos">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Pesquisar por produto, loja ou anotação..." aria-label="Pesquisar produto">
+          <button id="clearSearchBtn" class="clear-search-btn" title="Limpar pesquisa" aria-label="Limpar pesquisa" style="display: none;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="filter-actions-row">
+          <!-- Status Tabs -->
+          <nav class="status-tabs" role="tablist" aria-label="Abas de status do produto">
+            <button class="tab-btn active" data-tab="pending" role="tab" aria-selected="true" id="tabPending">
+              <span>A Comprar</span>
+              <span class="tab-badge" id="badgePendingCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="purchased" role="tab" aria-selected="false" id="tabPurchased">
+              <span>Comprados</span>
+              <span class="tab-badge" id="badgePurchasedCount">0</span>
+            </button>
+            <button class="tab-btn" data-tab="all" role="tab" aria-selected="false" id="tabAll">
+              <span>Todos</span>
+              <span class="tab-badge" id="badgeAllCount">0</span>
+            </button>
+          </nav>
+
+          <!-- Sort & Multi-Select actions -->
+          <div class="sort-actions">
+            <div class="select-wrapper">
+              <select id="sortSelect" aria-label="Ordenar produtos por">
+                <option value="recent">Mais recentes</option>
+                <option value="price-asc">Menor preço</option>
+                <option value="price-desc">Maior preço</option>
+                <option value="name-asc">Nome (A - Z)</option>
+              </select>
+            </div>
+
+            <button id="toggleSelectAllBtn" class="btn btn-secondary btn-sm" title="Marcar ou desmarcar todos para compra">
+              <span id="toggleSelectAllLabel">Marcar Todos</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- App Grid Layout: List + Summary Sidebar -->
+      <div class="app-layout">
+        
+        <!-- Products Column -->
+        <section class="products-section" aria-labelledby="productsSectionHeading">
+          <h2 id="productsSectionHeading" class="visually-hidden">Lista de Produtos</h2>
+
+          <div id="productsGrid" class="products-grid">
+            <!-- Product Cards injected dynamically via app.js -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon-wrap" id="emptyStateIcon">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="21" r="1"></circle>
+                <circle cx="19" cy="21" r="1"></circle>
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                <path d="m9 9 6 6M15 9l-6 6"></path>
+              </svg>
+            </div>
+            <h3 id="emptyStateTitle">Nenhum produto encontrado</h3>
+            <p id="emptyStateDesc">Você ainda não possui produtos cadastrados nesta lista.</p>
+            <button id="emptyStateActionBtn" class="btn btn-primary mt-3">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              <span>Cadastrar Primeiro Produto</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Financial Summary Sidebar -->
+        <aside class="summary-sidebar" aria-label="Resumo financeiro e simulação de compra">
+          <div class="summary-card">
+            <div class="summary-card-header">
+              <div class="summary-header-title">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <h3>Simulação de Compra</h3>
+              </div>
+              <span class="selection-pill" id="selectedItemsPill">0 selecionados</span>
+            </div>
+
+            <p class="summary-hint">
+              Marque o checkbox dos produtos que deseja comprar agora para calcular o total exato.
+            </p>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-breakdown">
+              <div class="summary-row">
+                <span class="row-label">Subtotal dos produtos:</span>
+                <span class="row-value" id="summarySubtotal">R$ 0,00</span>
+              </div>
+              <div class="summary-row">
+                <span class="row-label">Frete total estimado:</span>
+                <span class="row-value" id="summaryShipping">R$ 0,00</span>
+              </div>
+              <div class="summary-row highlight-row">
+                <span class="row-label-total">Total a Pagar:</span>
+                <span class="row-value-total" id="summaryTotal">R$ 0,00</span>
+              </div>
+            </div>
+
+            <!-- Action buttons for selected items -->
+            <div class="summary-actions">
+              <button id="markSelectedPurchasedBtn" class="btn btn-success btn-block" disabled>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>Marcar como Comprados</span>
+              </button>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <!-- Overall Cart Health & Stats -->
+            <div class="overall-stats-section">
+              <div class="overall-stats-title">Visão Geral da Lista</div>
+              
+              <div class="overall-progress-wrap">
+                <div class="progress-labels">
+                  <span>Progresso de Aquisições</span>
+                  <span id="purchaseProgressPercent">0%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-bar" id="purchaseProgressBar" style="width: 0%;"></div>
+                </div>
+              </div>
+
+              <div class="overall-metrics-grid">
+                <div class="metric-box">
+                  <span class="metric-label">Pendente a Comprar</span>
+                  <span class="metric-val" id="metricTotalPending">R$ 0,00</span>
+                </div>
+                <div class="metric-box">
+                  <span class="metric-label">Total Já Investido</span>
+                  <span class="metric-val text-success" id="metricTotalPurchased">R$ 0,00</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Product Modal (Add / Edit) -->
+  <div id="productModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Cadastrar Novo Produto</h3>
+        <button id="closeModalBtn" class="modal-close-btn" aria-label="Fechar janela">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <form id="productForm" class="modal-form" novalidate>
+        <input type="hidden" id="productId">
+
+        <!-- URL Input with auto-detection banner -->
+        <div class="form-group">
+          <label for="productUrl">
+            Link do Produto na Internet <span class="required">*</span>
+          </label>
+          <div class="input-with-icon">
+            <svg class="field-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            <input type="url" id="productUrl" placeholder="https://www.mercadolivre.com.br/produto..." required autocomplete="off">
+          </div>
+          <span class="field-error" id="productUrlError" role="alert"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span></span></span>
+          <span class="field-help" id="storeDetectHelp">
+            Cole o link do Mercado Livre, Amazon, Shopee, Kabum, Magalu, AliExpress, etc. A loja é identificada na hora!
+          </span>
+        </div>
+
+        <!-- Product Name -->
+        <div class="form-group">
+          <label for="productName">
+            Nome do Produto <span class="required">*</span>
+          </label>
+          <input type="text" id="productName" placeholder="Ex: Fone Bluetooth Sony WH-1000XM5" required maxlength="120">
+          <span class="field-error" id="productNameError" role="alert"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span></span></span>
+        </div>
+
+        <!-- Price, Shipping & Quantity Grid -->
+        <div class="form-row-three">
+          <div class="form-group">
+            <label for="productPrice">Preço Unitário (R$) <span class="required">*</span></label>
+            <div class="currency-input-wrap">
+              <span class="currency-symbol">R$</span>
+              <input type="number" id="productPrice" placeholder="0,00" step="0.01" min="0" required>
+            </div>
+            <span class="field-error" id="productPriceError" role="alert"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span></span></span>
+          </div>
+
+          <div class="form-group">
+            <label for="productShipping">Frete Estimado (R$)</label>
+            <div class="currency-input-wrap">
+              <span class="currency-symbol">R$</span>
+              <input type="number" id="productShipping" placeholder="0,00" step="0.01" min="0">
+            </div>
+            <span class="field-error" id="productShippingError" role="alert"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span></span></span>
+          </div>
+
+          <div class="form-group">
+            <label for="productQuantity">Quantidade</label>
+            <div class="quantity-input-stepper">
+              <button type="button" class="stepper-btn" id="modalQtyMinus" aria-label="Diminuir quantidade">-</button>
+              <input type="number" id="productQuantity" value="1" min="1" max="99" required>
+              <button type="button" class="stepper-btn" id="modalQtyPlus" aria-label="Aumentar quantidade">+</button>
+            </div>
+            <span class="field-error" id="productQuantityError" role="alert"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span></span></span>
+          </div>
+        </div>
+
+        <!-- Store Identification & Customization -->
+        <div class="form-group">
+          <label for="productStore">Loja / Plataforma</label>
+          <div class="store-input-group">
+            <input type="text" id="productStore" placeholder="Detectado automaticamente ou digite...">
+            <div class="store-badge-preview" id="storeBadgePreview">
+              <span class="store-pill store-generic" id="detectedStorePill">Auto</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Selector: URL or Upload -->
+        <div class="form-group">
+          <label>Imagem do Produto</label>
+          
+          <div class="image-tabs">
+            <button type="button" class="img-tab-btn active" id="tabImgUrlBtn">URL da Imagem</button>
+            <button type="button" class="img-tab-btn" id="tabImgUploadBtn">Enviar Arquivo</button>
+          </div>
+
+          <div class="image-input-container">
+            <!-- URL Tab -->
+            <div id="imgUrlSection" class="img-tab-content">
+              <input type="url" id="productImageUrl" placeholder="https://exemplo.com/foto-produto.jpg">
+              <span class="field-error" id="productImageUrlError" role="alert"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><span></span></span>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="imgUploadSection" class="img-tab-content" style="display: none;">
+              <div class="upload-dropzone" id="uploadDropzone">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Clique para selecionar ou arraste uma foto aqui</p>
+                <span class="dropzone-tip">PNG, JPG, WEBP (otimizado automaticamente)</span>
+                <input type="file" id="productImageFile" accept="image/*" class="visually-hidden">
+              </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="image-preview-box" id="imagePreviewBox" style="display: none;">
+              <img id="imagePreviewImg" src="" alt="Pré-visualização da imagem">
+              <button type="button" id="removeImageBtn" class="remove-image-btn" title="Remover imagem">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes / Observations -->
+        <div class="form-group">
+          <label for="productNotes">Observações / Detalhes</label>
+          <textarea id="productNotes" rows="2" placeholder="Ex: Modelo preto 110V; aplicar cupom DESCONTO10; priorizar compra este mês"></textarea>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="modal-footer">
+          <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancelar</button>
+          <button type="submit" id="saveProductBtn" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span id="saveBtnLabel">Salvar Produto</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal (global, reused by every destructive action) -->
+  <div id="confirmModal" class="modal-overlay" aria-hidden="true" role="alertdialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+    <div class="modal-card modal-card-sm">
+      <div class="modal-header">
+        <h3 id="confirmTitle">Confirmar ação</h3>
+        <button type="button" id="confirmCloseBtn" class="modal-close-btn" aria-label="Fechar janela">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <p id="confirmMessage" class="confirm-message"></p>
+      </div>
+      <div class="modal-footer confirm-footer">
+        <button type="button" id="confirmCancelBtn" class="btn btn-secondary">Cancelar</button>
+        <button type="button" id="confirmOkBtn" class="btn btn-danger">
+          <span id="confirmOkLabel">Confirmar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
